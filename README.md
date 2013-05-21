@@ -1,4 +1,5 @@
 ・full2abbr.wsf
+
 bib ファイルの雑誌名を正式名称から省略名称に置換する JScript
 
 デフォルトでは AMS の公開している省略名リスト
@@ -24,6 +25,7 @@ useAMS = true の場合、annser.csv が最後に適用される。
 
 
 ・aps.wsf
+
 APS が公開している省略名リスト
 
 https://authors.aps.org/STYLE/style_jabbr.html
