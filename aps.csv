@@ -1,0 +1,71 @@
+<job>
+<comment>
+APS が公開している雑誌省略名リスト
+https://authors.aps.org/STYLE/style_jabbr.html
+が i タグ文字列に b タグでマークアップして省略名を示すという
+前近代的な形式となっており、非常に使いづらいので、これを
+CSV 形式に変換して aps.csv として出力する。
+</comment>
+
+<script language="JavaScript">
+var url = "https://authors.aps.org/STYLE/style_jabbr.html";
+var outputFilename = "aps.csv";
+
+var IE = WScript.CreateObject("InternetExplorer.Application");
+IE.Navigate(url);
+while(IE.Busy || (IE.readystate != 4)) WScript.Sleep(100);
+
+var titles = IE.document.getElementsByTagName("i");
+
+var output = "";
+for(var i = 0; i < titles.length; ++i){
+  var fullTitle = titles[i].innerText;
+
+  var bElems = titles[i].getElementsByTagName("b");
+  var postBStrings = titles[i].innerHTML.split("</b>");
+  var abbrev = "";
+  for(var j = 0; j < bElems.length; ++j){
+    var bText = bElems[j].innerText;
+    var postBString = postBStrings[j + 1];
+    bText = bText.replace(/^ /, "");  // 最初の空白を除去
+    abbrev += bText;
+    // </b> の次の文字が、空白・改行・タブ・コロン・括弧ではないとき、省略の "." を付ける
+    if(postBString != "" &&
+       !postBString.charAt(0).match(/^[ \n\t:]/) &&
+       !postBString.match(/^<b>\)/)) abbrev += ".";
+    abbrev += " ";
+  }
+
+  // 角括弧 [] 内の文字列は除去
+  fullTitle = fullTitle.replace(/\[[\s\S]*\]/g, "");
+  abbrev    = abbrev   .replace(/\[[\s\S]*\]/g, "");
+  
+  // 括弧 () の処理
+  fullTitle = fullTitle.replace(/\( /g  , "(").replace(/\) /g, ")");
+  abbrev    = abbrev   .replace(/\(\. /g, "(").replace(/ \)/g, ")");
+  
+  // J.p.n の処理
+  abbrev = abbrev.replace(/J\. p\. n\./g, "Jpn.").replace(/J\. p\. n/g, "Jpn.");
+
+  // 2重空白、行頭、行末の空白を除去
+  fullTitle = fullTitle.replace(/ +/g, " ").replace(/^ +/, "").replace(/ +$/, "");
+  abbrev    = abbrev   .replace(/ +/g, " ").replace(/^ +/, "").replace(/ +$/, "");
+  
+  if(fullTitle != "" && abbrev != "") output += "\"" + abbrev + "\",\"" + fullTitle + "\"\n";
+}
+
+// 出力 csv ファイルへ書き込み
+var sw = new ActiveXObject("ADODB.Stream");
+sw.charset = "utf-8";
+sw.Open();
+sw.WriteText("\"Abbrev\",\"Full Title\"\n");
+sw.WriteText(output);
+sw.SaveToFile(outputFilename, 2);
+sw.Close();
+
+
+IE.Quit();
+
+</script>
+
+</job>
