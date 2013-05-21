@@ -1,0 +1,91 @@
+<job>
+<script language="JavaScript">
+
+var inputBibFilename  = "library.bib";
+var outputBibFilename = "abbrLibrary.bib";
+
+var useAMSDB = true;
+
+var DBFilenames = ["my.csv", "aps.csv"];
+
+// カンマ区切り文字列 t から 2 次元配列を返す関数 loadCSVText(t)
+var loadCSVText = function(t){
+  var ls = t.split(String.fromCharCode(10));  //LF
+  var a = [];
+  for(var i = 0; i < ls.length; ++i){
+    // 一旦タブ区切りに変換して split する（なので、実は tsv ファイルも処理できる）
+    a[i] = ls[i].replace(/","/g, "\"\t\"").split("\t");
+    // ダブルクォーテーションを除去
+    for(var j = 0; j < a[i].length; ++j) a[i][j] = a[i][j].replace(/^"(.*)"$/, "$1");
+  }
+  return a;
+}
+
+// ファイル名 fn の csv ファイルから 2 次元配列を返す関数 loadCSV(fn)
+var loadCSV = function(fn){
+  if(!(new ActiveXObject("Scripting.FileSystemObject")).FileExists(fn)) return [];
+  var sr = new ActiveXObject("ADODB.Stream");
+  sr.Charset = "Shift_JIS";
+  sr.Open();
+  sr.LoadFromFile(fn);
+  return loadCSVText(sr.ReadText());
+}
+
+// AMS の annser.csv から 2 次元配列を返す関数 loadAMS()
+var loadAMS = function(){
+  var IE = new ActiveXObject("InternetExplorer.Application");
+  IE.navigate("http://www.ams.org/msnhtml/annser.csv");
+  while(IE.Busy || (IE.readystate != 4)) WScript.Sleep(100);
+  return loadCSVText(IE.document.getElementsByTagName("body")[0].innerText);
+}
+
+// データベース読み込み
+var DBs = [];
+for(var i = 0; i < DBFilenames.length; ++i) DBs[i] = loadCSV(DBFilenames[i]);
+
+if(useAMSDB) DBs[DBs.length] = loadAMS();
+
+// 正式名称 full がデータベース a に入っていれば、略称を返す関数 getAbbr(a, full)
+var getAbbr = function(a, full){
+  for(var i = 0; i < a.length; ++i) if(a[i][1] == full) return a[i][0];
+  return "";
+}
+
+// 入力 bib ファイル読み込み
+var sr = new ActiveXObject("ADODB.Stream");
+sr.Charset = "utf-8";
+sr.Open();
+sr.LoadFromFile(inputBibFilename);
+var inputLines = sr.ReadText().split("\n");
+sr.Close();
+
+// メインループ
+var output = "";
+for(var i = 0; i < inputLines.length; ++i){
+  var l = inputLines[i];
+  if(l.match(/journal = {(.*)},/)){
+    var full = RegExp.$1;
+    var abbr = "";
+    for(var j = 0; j < DBs.length; ++j){
+      if(abbr == "") abbr = getAbbr(DBs[j], full);
+      if(abbr != ""){ // 見付かったら置換して次の行へ
+        l = l.replace(full, abbr);
+        break;
+      }
+    }
+  }
+  output += l + "\n";
+}
+
+// 出力 bib ファイルへ書き込み
+var sw = new ActiveXObject("ADODB.Stream");
+sw.Charset = "utf-8";
+sw.Open();
+sw.WriteText(output);
+sw.SaveToFile(outputBibFilename, 2);
+sw.Close();
+
+WScript.Echo("置換終了");
+
+</script>
+</job>
