@@ -7,7 +7,7 @@ var outputBibFilename = "abbrLibrary.bib";
 var useJabRefDB = true;
 var useAMSDB = true;
 
-var DBFilenames = ["my.csv", "aps.csv"];
+var DBFilenames = [];
 
 // カンマ区切り文字列 t から 2 次元配列を返す関数 loadCSVText(t)
 var loadCSVText = function(t){
@@ -107,7 +107,10 @@ sw.WriteText(output);
 sw.SaveToFile(outputBibFilename, 2);
 sw.Close();
 
-WScript.Echo("置換終了");
-
+// 変換終了をベルで知らせる
+var MPlayer = WScript.CreateObject ("MediaPlayer.MediaPlayer");
+MPlayer.FileName = "C:\\windows\\media\\Windows Ding.wav";
+MPlayer.Play();
+while(MPlayer.PlayState != 0) WScript.Sleep(100);
 </script>
 </job>
