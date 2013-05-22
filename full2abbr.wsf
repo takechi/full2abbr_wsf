@@ -5,7 +5,7 @@ var inputBibFilename  = "library.bib";
 var outputBibFilename = "abbrLibrary.bib";
 
 var useJabRefDB = true;
-var useAMSDB = true;
+var useAMSDB = false;
 
 var DBFilenames = ["my.csv"];
 
