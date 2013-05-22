@@ -7,14 +7,14 @@ var outputBibFilename = "abbrLibrary.bib";
 var useJabRefDB = true;
 var useAMSDB = true;
 
-var DBFilenames = [];
+var DBFilenames = ["my.csv"];
 
 // カンマ区切り文字列 t から 2 次元配列を返す関数 loadCSVText(t)
 var loadCSVText = function(t){
   var ls = t.split(String.fromCharCode(10));  //LF
   var a = [];
   for(var i = 0; i < ls.length; ++i){
-    // 一旦タブ区切りに変換して split する（なので、実は tsv ファイルも処理できる）
+    // 一旦タブ区切りに変換して split する（なので、実は tsv データも処理できる）
     a[i] = ls[i].replace(/","/g, "\"\t\"").split("\t");
     // ダブルクォーテーションを除去
     for(var j = 0; j < a[i].length; ++j) a[i][j] = a[i][j].replace(/^"(.*)"$/, "$1");
@@ -32,24 +32,24 @@ var loadCSV = function(fn){
   return loadCSVText(sr.ReadText());
 }
 
-// AMS の annser.csv から 2 次元配列を返す関数 loadAMS()
-var loadAMS = function(){
+// URL から body の innerText を取得する関数 getBodyText(url)
+var getBodyText = function(url){
   var IE = new ActiveXObject("InternetExplorer.Application");
-  IE.Navigate("http://www.ams.org/msnhtml/annser.csv");
+  IE.Navigate(url);
   while(IE.Busy || (IE.readystate != 4)) WScript.Sleep(100);
   var t = IE.document.getElementsByTagName("body")[0].innerText;
   IE.Quit();
-  return loadCSVText(t);
+  return t;
 }
 
+// AMS の annser.csv から 2 次元配列を返す関数 loadAMS()
+var loadAMS = function(){
+  return loadCSVText(getBodyText("http://www.ams.org/msnhtml/annser.csv"));
+}
 
 // JabRef の journal_abbreviations_general.txt から 2 次元配列を返す関数 loadJabRef()
 var loadJabRef = function(){
-  var IE = new ActiveXObject("InternetExplorer.Application");
-  IE.Navigate("http://jabref.sourceforge.net/journals/journal_abbreviations_general.txt");
-  while(IE.Busy || (IE.readystate != 4)) WScript.Sleep(100);
-  var ls = IE.document.getElementsByTagName("body")[0].innerText.split("\n");
-  IE.Quit();
+  var ls = getBodyText("http://jabref.sourceforge.net/journals/journal_abbreviations_general.txt").split("\n");
   var a = [];
   for(var i = 0; i < ls.length; ++i){
     a[i] = ls[i].split("=").reverse();  // annser.csv とは逆なので reverse
@@ -89,8 +89,7 @@ for(var i = 0; i < inputLines.length; ++i){
     var full = RegExp.$1;
     var abbr = "";
     for(var j = 0; j < DBs.length; ++j){
-      if(abbr == "") abbr = getAbbr(DBs[j], full);
-      if(abbr != ""){ // 見付かったら置換して次の行へ
+      if(abbr = getAbbr(DBs[j], full)){
         l = l.replace(full, abbr);
         break;
       }
