@@ -1,4 +1,23 @@
 <job>
+<comment>
+BibTeX の bib ファイルにおいて、journal の右辺を調べて
+雑誌正式名称を省略名称に変換する。
+正式名称と省略名称の対応リストには、デフォルトで JabRef の提供する
+http://jabref.sourceforge.net/journals/journal_abbreviations_general.txt
+を利用する。
+
+useAMSDB = true; とすることで、AMS の提供する
+http://www.ams.org/msnhtml/annser.csv
+を追加で利用することもできる。
+
+CSV でファイル（例えば my.csv）を作成し、それを
+DBFilenames = ["my.csv"];
+として読み込ませて利用することもできる。
+
+CSV の書式は、第 1 列が省略名、第 2 列が正式名。
+それぞれダブルクォーテーションで囲む。
+</comment>
+
 <script language="JavaScript">
 
 var inputBibFilename  = "library.bib";
