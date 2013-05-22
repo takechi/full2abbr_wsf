@@ -19,7 +19,7 @@ annser.csv と同じ形式（つまり、第 1 列が省略名称 "Abbrev"、第
 正式名称 "Full Title" で、それぞれダブルクォーテーションで囲む）の CSV を
 準備すれば、それを変換に利用することもできる。
 
-例えば my.csv と aps.csv を読み込ませたい場合は、それらを full2abbr.wsf と
+例えば my1.csv と my2.csv を読み込ませたい場合は、それらを full2abbr.wsf と
 同じフォルダに置き、
 
 DBFilenames = ["my1.csv", "my2.csv"];
