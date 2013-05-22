@@ -15,7 +15,7 @@ http://www.ams.org/msnhtml/annser.csv
 （利用しない場合は useJabRefDB または useAMSDB を false にする）
 
 
-annser.csv と同じ形式（つまり、第 1 列が省略名称 "Abbrev" で、第 2 列が
+annser.csv と同じ形式（つまり、第 1 列が省略名称 "Abbrev"、第 2 列が
 正式名称 "Full Title" で、それぞれダブルクォーテーションで囲む）の CSV を
 準備すれば、それを変換に利用することもできる。
 
