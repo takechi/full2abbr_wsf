@@ -115,9 +115,9 @@ sw.SaveToFile(outputBibFilename, 2);
 sw.Close();
 
 // 変換終了をベルで知らせる
-var MPlayer = WScript.CreateObject ("MediaPlayer.MediaPlayer");
-MPlayer.FileName = "C:\\windows\\media\\Windows Ding.wav";
-MPlayer.Play();
-while(MPlayer.PlayState != 0) WScript.Sleep(100);
+var MP = WScript.CreateObject ("MediaPlayer.MediaPlayer");
+MP.FileName = "C:\\windows\\media\\Windows Ding.wav";
+MP.Play();
+while(MP.PlayState != 0) WScript.Sleep(100);
 </script>
 </job>
