@@ -24,31 +24,31 @@ var inputBibFilename  = "library.bib";
 var outputBibFilename = "abbrLibrary.bib";
 
 var useJabRefDB = true;
-var useAMSDB = false;
+var useAMSDB    = false;
 
-var DBFilenames = ["my.csv"];
+var DBFilenames = ["my.csv", "aps.csv"];
 
-// カンマ区切り文字列 t から 2 次元配列を返す関数 loadCSVText(t)
-var loadCSVText = function(t){
+// カンマ区切り文字列 t のデータを a に追加する関数 loadCSVText(t, a)
+var loadCSVText = function(t, a){
   var ls = t.split(String.fromCharCode(10));  //LF
-  var a = [];
   for(var i = 0; i < ls.length; ++i){
     // 一旦タブ区切りに変換して split する（なので、実は tsv データも処理できる）
-    a[i] = ls[i].replace(/","/g, "\"\t\"").split("\t");
+    var d = ls[i].replace(/","/g, "\"\t\"").split("\t");
+    if(d.length < 2) continue;
     // ダブルクォーテーションを除去
-    for(var j = 0; j < a[i].length; ++j) a[i][j] = a[i][j].replace(/^"(.*)"$/, "$1");
+    for(var j = 0; j < 2; ++j) d[j] = d[j].replace(/^"(.*)"$/, "$1");
+    a[d[1]] = d[0];
   }
-  return a;
 }
 
-// ファイル名 fn の csv ファイルから 2 次元配列を返す関数 loadCSV(fn)
-var loadCSV = function(fn){
-  if(!(new ActiveXObject("Scripting.FileSystemObject")).FileExists(fn)) return [];
+// ファイル名 fn の csv ファイルのデータを a に追加する関数 loadCSV(fn, a)
+var loadCSV = function(fn, a){
+  if(!(new ActiveXObject("Scripting.FileSystemObject")).FileExists(fn)) return;
   var sr = new ActiveXObject("ADODB.Stream");
   sr.Charset = "Shift_JIS";
   sr.Open();
   sr.LoadFromFile(fn);
-  return loadCSVText(sr.ReadText());
+  loadCSVText(sr.ReadText(), a);
 }
 
 // URL から body の innerText を取得する関数 getBodyText(url)
@@ -61,38 +61,32 @@ var getBodyText = function(url){
   return t;
 }
 
-// AMS の annser.csv から 2 次元配列を返す関数 loadAMS()
-var loadAMS = function(){
-  return loadCSVText(getBodyText("http://www.ams.org/msnhtml/annser.csv"));
-}
+// AMS の annser.csv のデータを a に追加する関数 loadAMS()
+var loadAMS = function(a){ loadCSVText(getBodyText("http://www.ams.org/msnhtml/annser.csv"), a); }
 
-// JabRef の journal_abbreviations_general.txt から 2 次元配列を返す関数 loadJabRef()
-var loadJabRef = function(){
+// JabRef の journal_abbreviations_general.txt のデータを a に追加する関数 loadJabRef(a)
+var loadJabRef = function(a){
   var ls = getBodyText("http://jabref.sourceforge.net/journals/journal_abbreviations_general.txt").split("\n");
-  var a = [];
   for(var i = 0; i < ls.length; ++i){
-    a[i] = ls[i].split("=").reverse();  // annser.csv とは逆なので reverse
+    var d = ls[i].split("=");
+    if(d.length < 2) continue;
     // 改行と空白の処理
-    for(var j = 0; j < 2; ++j) a[i][j] = a[i][j].replace(/^\s+(.*)/, "$1").replace(/(.*)\s+$/g, "$1")
+    for(var j = 0; j < 2; ++j) d[j] = d[j].replace(/^\s+(.*)/, "$1").replace(/(.*)\s+$/g, "$1")
+    a[d[0]] = d[1];
   }
-  return a;
 }
 
-// データベース読み込み
-var DBs = [];
-for(var i = 0; i < DBFilenames.length; ++i) DBs[i] = loadCSV(DBFilenames[i]);
-
-// JabRefDB の方を先に読み込む
-if(useJabRefDB) DBs[DBs.length] = loadJabRef();
-if(useAMSDB   ) DBs[DBs.length] = loadAMS();
-
-// 正式名称 full がデータベース a に入っていれば、略称を返す関数 getAbbr(a, full)
-var getAbbr = function(a, full){
-  for(var i = 0; i < a.length; ++i) if(a[i][1] == full) return a[i][0];
-  return "";
-}
+// データベース読み込み（後に読み込んだデータが優先される）
+var DB = [];
+if(useAMSDB   ) loadAMS(DB);
+if(useJabRefDB) loadJabRef(DB);
+for(var i = DBFilenames.length; i >= 0; --i) loadCSV(DBFilenames[i], DB);
 
 // 入力 bib ファイル読み込み
+if(!(new ActiveXObject("Scripting.FileSystemObject")).FileExists(inputBibFilename)){
+  WScript.Echo("入力 bib ファイル " + inputBibFilename + " が見付かりません.");
+  WScript.Quit();
+}
 var sr = new ActiveXObject("ADODB.Stream");
 sr.Charset = "utf-8";
 sr.Open();
@@ -104,20 +98,15 @@ sr.Close();
 var output = "";
 for(var i = 0; i < inputLines.length; ++i){
   var l = inputLines[i];
-  if(l.match(/journal = {(.*)},/)){
+  if(l.match(/journal += +{(.*)}/)){
     var full = RegExp.$1;
-    var abbr = "";
-    for(var j = 0; j < DBs.length; ++j){
-      if(abbr = getAbbr(DBs[j], full)){
-        l = l.replace(full, abbr);
-        break;
-      }
-    }
+    var abbr = DB[full];
+    if(abbr) l = l.replace(full, abbr);
   }
   output += l + "\n";
 }
 
-// 出力 bib ファイルへ書き込み
+// 出力 bib ファイル書き込み
 var sw = new ActiveXObject("ADODB.Stream");
 sw.Charset = "utf-8";
 sw.Open();
