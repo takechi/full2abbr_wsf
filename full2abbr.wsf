@@ -61,7 +61,7 @@ var getBodyText = function(url){
   return t;
 }
 
-// AMS の annser.csv のデータを a に追加する関数 loadAMS()
+// AMS の annser.csv のデータを a に追加する関数 loadAMS(a)
 var loadAMS = function(a){ loadCSVText(getBodyText("http://www.ams.org/msnhtml/annser.csv"), a); }
 
 // JabRef の journal_abbreviations_general.txt のデータを a に追加する関数 loadJabRef(a)
