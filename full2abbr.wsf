@@ -36,7 +36,7 @@ var loadCSVText = function(t, a){
     var d = ls[i].replace(/","/g, "\"\t\"").split("\t");
     if(d.length < 2) continue;
     // ダブルクォーテーションを除去
-    for(var j = 0; j < 2; ++j) d[j] = d[j].replace(/^"(.*)"$/, "$1");
+    for(var j = 0; j < 2; ++j) d[j] = d[j].replace(/.*"(.*)".*/, "$1");
     a[d[1]] = d[0];
   }
 }
